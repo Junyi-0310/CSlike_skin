@@ -1,0 +1,30 @@
+{
+  "name": "cslike-skin-hybrid-tokenisation",
+  "version": "1.0.0",
+  "description": "Academic proof-of-concept: hybrid tokenisation platform for digital game skins using ERC-20 and ERC-721.",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:ft:sepolia": "hardhat run scripts/deploy-ft.js --network sepolia",
+    "deploy:nft:sepolia": "hardhat run scripts/deploy-nft.js --network sepolia"
+  },
+  "keywords": [
+    "solidity",
+    "hardhat",
+    "erc20",
+    "erc721",
+    "tokenisation",
+    "cs2"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+    "dotenv": "^16.4.5",
+    "hardhat": "^2.22.10"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.2"
+  }
+}
