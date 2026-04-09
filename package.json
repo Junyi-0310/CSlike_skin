@@ -1,19 +1,21 @@
 {
-  "name": "cslike-skin-hybrid-tokenisation",
-  "version": "1.0.0",
-  "description": "Academic proof-of-concept: hybrid tokenisation platform for digital game skins using ERC-20 and ERC-721.",
+  "name": "cs2-skin-hybrid-platform-poc",
+  "version": "1.1.0",
+  "description": "Blockchain-native asset model proof-of-concept for hybrid FT + NFT game skin tokenisation.",
   "main": "index.js",
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",
     "deploy:ft:sepolia": "hardhat run scripts/deploy-ft.js --network sepolia",
-    "deploy:nft:sepolia": "hardhat run scripts/deploy-nft.js --network sepolia"
+    "deploy:nft:sepolia": "hardhat run scripts/deploy-nft.js --network sepolia",
+    "deploy:platform:sepolia": "hardhat run scripts/deploy-platform.js --network sepolia"
   },
   "keywords": [
     "solidity",
     "hardhat",
     "erc20",
     "erc721",
+    "platform-manager",
     "tokenisation",
     "cs2"
   ],

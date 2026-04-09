@@ -1,78 +1,92 @@
-# Hybrid Tokenisation Prototype for Digital Game Skins (Academic PoC)
+# CS2 Skin Hybrid Platform (Blockchain-Native Asset Model, PoC)
 
-This project is a **university coursework proof-of-concept** showing how digital game skin economies (inspired by CS/CS2-like markets) can be tokenised on blockchain.
-
-> Important: This repository does **not** connect to Steam, Valve, CS2 inventory APIs, or any real user assets. It is a pure simulation for academic analysis.
-
----
-
-## Why this project uses two contracts
-
-This coursework demonstrates a **hybrid tokenisation design**:
-
-1. **ERC-20 (`SkinFT`)** for common/standardised skins
-   - Best when assets are economically similar and traded like interchangeable units.
-2. **ERC-721 (`SkinNFT`)** for rare/unique skins
-   - Best when each asset has unique attributes (name/rarity/wear/pattern) and should be priced individually.
-
-This maps to the financial logic: **asset heterogeneity -> token choice -> market behavior**.
+> Academic proof-of-concept only.  
+> This project **does not** connect to Steam/Valve/real inventories.  
+> It simulates how game-skin-like assets can be represented as blockchain-native financial primitives.
 
 ---
 
-## Project structure
+## 1) What this project is
+
+这是一个课程作业用的最小可运行原型，核心目标是展示：
+
+`Asset -> Classification -> Token Form -> Market Logic`
+
+本项目通过三个合约完成这个逻辑链：
+
+1. **SkinFT (ERC-20)**：用于“普通/标准化”皮肤池份额（可互换）
+2. **SkinNFT (ERC-721)**：用于“稀有/个体化”皮肤（不可互换）
+3. **PlatformManager (协调层)**：先分类，再路由到 FT 或 NFT 铸造路径
+
+这使它不是“两个并排 demo”，而是一个统一的平台 workflow。
+
+---
+
+## 2) Why there are two token contracts + one manager
+
+- **ERC-20** 适合同质化程度高、交易像“单位份额”的资产。
+- **ERC-721** 适合有显著个体差异（名称/稀有度/磨损/图案）的资产。
+- **PlatformManager** 负责分类和调度，体现平台逻辑：
+  - `classifyAsset(assetId, category, note)`
+  - `mintPoolUnits(...)` -> 走 FT
+  - `mintPremiumSkin(...)` -> 走 NFT
+
+---
+
+## 3) Project structure
 
 ```bash
 .
 ├── contracts
 │   ├── SkinFT.sol
-│   └── SkinNFT.sol
+│   ├── SkinNFT.sol
+│   └── PlatformManager.sol
 ├── scripts
 │   ├── deploy-ft.js
-│   └── deploy-nft.js
+│   ├── deploy-nft.js
+│   └── deploy-platform.js
 ├── test
 │   ├── SkinFT.test.js
-│   └── SkinNFT.test.js
-├── .env.example
-├── .gitignore
+│   ├── SkinNFT.test.js
+│   └── PlatformManager.test.js
 ├── hardhat.config.js
 ├── package.json
+├── .env.example
 └── README.md
 ```
 
 ---
 
-## Prerequisites
+## 4) Prerequisites
 
-- **Node.js 18+** (recommended LTS)
-- **npm**
-- A wallet private key with test ETH (Sepolia recommended)
-- An RPC endpoint (e.g., Infura/Alchemy)
+- Node.js 18+
+- npm
+- Sepolia test ETH
+- RPC URL (Infura/Alchemy 等)
 
 ---
 
-## Installation
+## 5) Installation
 
 ```bash
 npm install
-```
-
-If install succeeds, copy environment template:
-
-```bash
 cp .env.example .env
 ```
 
-Then open `.env` and set values:
+在 `.env` 填写：
 
 ```env
-RPC_URL=https://sepolia.infura.io/v3/YOUR_KEY
-PRIVATE_KEY=your_wallet_private_key_without_0x
-ETHERSCAN_API_KEY=optional_for_verification
+RPC_URL=
+PRIVATE_KEY=
+ETHERSCAN_API_KEY=
 ```
+
+- `PRIVATE_KEY` 不要带 `0x`
+- 钱包地址要有 Sepolia 测试币
 
 ---
 
-## Compile
+## 6) Compile
 
 ```bash
 npm run compile
@@ -80,125 +94,94 @@ npm run compile
 
 ---
 
-## Run tests
+## 7) Run tests
 
 ```bash
 npm test
 ```
 
-Tests include:
-- FT mint
-- FT burn
-- FT transfer
-- NFT mint
-- NFT ownerOf
-- NFT metadata retrieval via `getSkinDetails`
-- NFT burn
+测试覆盖：
+- FT: mint / burn / transfer
+- NFT: mint / ownerOf / metadata getter / burn
+- PlatformManager: 分类、FT 路由铸造、NFT 路由铸造、错误分类回滚
 
 ---
 
-## Deploy to Sepolia testnet
+## 8) Deploy to Sepolia
 
-### Deploy FT contract
+### Option A: Deploy each token contract separately
 
 ```bash
 npm run deploy:ft:sepolia
-```
-
-Expected output example:
-
-```bash
-SkinFT deployed to: 0x...
-```
-
-### Deploy NFT contract
-
-```bash
 npm run deploy:nft:sepolia
 ```
 
-Expected output example:
+### Option B (recommended): One-shot platform deployment
 
 ```bash
-SkinNFT deployed to: 0x...
+npm run deploy:platform:sepolia
 ```
 
----
+该脚本会：
+1. 部署 SkinFT
+2. 部署 SkinNFT
+3. 部署 PlatformManager
+4. 将 SkinFT / SkinNFT 的 owner 转移给 PlatformManager
 
-## How to verify deployment succeeded
-
-1. Copy the printed address from terminal output.
-2. Open [https://sepolia.etherscan.io](https://sepolia.etherscan.io).
-3. Paste contract address.
-4. Confirm the address has contract bytecode and transactions.
-
-(Optional) If you configure `ETHERSCAN_API_KEY`, you can add Hardhat verification later.
-
----
-
-## Where to find your contract addresses (CA)
-
-For this minimal project, addresses are printed directly by deployment scripts:
-- `scripts/deploy-ft.js`
-- `scripts/deploy-nft.js`
-
-For coursework reporting, copy terminal output and include:
-- Network name (e.g., Sepolia)
-- FT contract address
-- NFT contract address
-- Deployment transaction hash (from explorer)
+控制台会打印 3 个地址：
+- SkinFT deployed to: `0x...`
+- SkinNFT deployed to: `0x...`
+- PlatformManager deployed to: `0x...`
 
 ---
 
-## Example interactions after deployment
+## 9) Verify deployment success
 
-You can use Etherscan "Write Contract" (after connecting wallet) or Hardhat console.
-
-### SkinFT examples
-- `mint(<address>, 100)` -> owner mints 100 whole units
-- `transfer(<address>, 5)` -> transfer 5 units
-- `burn(2)` -> owner burns 2 units from owner balance
-
-### SkinNFT examples
-- `mintSkin(to, skinName, rarity, wearLevel, pattern, tokenURI)`
-- `ownerOf(tokenId)`
-- `getSkinDetails(tokenId)`
-- `burn(tokenId)`
+1. 复制终端输出地址
+2. 打开 <https://sepolia.etherscan.io>
+3. 搜索地址，确认存在 bytecode 和部署交易
 
 ---
 
-## Contract design summary
+## 10) Where to find contract addresses for your report
 
-### `SkinFT.sol` (ERC-20)
-- Owner-controlled mint and burn
-- `decimals()` returns `0` for whole-unit behavior
-- Stores an `assetDescription`
-- Emits clear mint/burn events
-
-### `SkinNFT.sol` (ERC-721)
-- Owner-controlled mint and burn
-- Stores structured on-chain metadata:
-  - `skinName`
-  - `rarity`
-  - `wearLevel`
-  - `pattern`
-- Also stores `tokenURI`
-- Provides `getSkinDetails(tokenId)` getter
-- Emits clear mint/burn events
+最直接来源：部署脚本终端输出。  
+报告中建议记录：
+- Network: Sepolia
+- SkinFT CA
+- SkinNFT CA
+- PlatformManager CA
+- 三笔部署交易哈希
 
 ---
 
-## Academic explanation: why ERC-20 for common and ERC-721 for rare
+## 11) Example post-deployment workflow (platform logic)
 
-- **Common skins** are modeled as economically similar units where exact identity is less important for pricing and transfer. ERC-20 provides lower-friction transfer and easier aggregation.
-- **Rare skins** are modeled as unique items with distinct value drivers (rarity, pattern, wear). ERC-721 preserves identity and supports individualized valuation.
+假设你要模拟两类资产：
 
-This hybrid model reflects a finance-oriented tokenisation principle: use token standards according to **economic properties of the underlying asset**, not technical preference alone.
+### Common asset (FT path)
+1. `classifyAsset(1001, 1, "Common pool")`
+2. `mintPoolUnits(1001, studentWallet, 50)`
+
+### Premium asset (NFT path)
+1. `classifyAsset(2001, 2, "Premium unique skin")`
+2. `mintPremiumSkin(2001, studentWallet, "AWP | Asiimov", "Rare", "Factory New", "Pattern-123", "ipfs://...")`
 
 ---
 
-## Notes for coursework submission
+## 12) Academic note (for report text)
 
-- Do **not** claim real game integration.
-- Include testnet contract addresses in your report.
-- Include screenshots of deployment logs and explorer pages as evidence.
+This platform demonstrates a **blockchain-native asset model** where token standards are chosen by economic heterogeneity, not by technology preference alone.
+
+- Common, pooled claims -> ERC-20
+- Unique, attribute-rich claims -> ERC-721
+- Classification + routing is enforced by PlatformManager to maintain coherent platform behavior.
+
+---
+
+## 13) Important limitations (state in report)
+
+- No real game asset integration
+- No marketplace/auction pricing engine
+- Centralized governance via contract owner (academic simplification)
+- Designed for concept validation, not production
